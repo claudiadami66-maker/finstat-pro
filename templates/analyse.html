@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+{% block title %}FinStat Pro — Analyse{% endblock %}
+
+{% block extra_style %}
+<style>
+    .page-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+    .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+
+    .tab-switch {
+        display: flex;
+        background: var(--dark3);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 4px;
+        margin-bottom: 24px;
+        gap: 4px;
+        overflow-x: auto;
+    }
+
+    .tab-sw {
+        flex: 1;
+        padding: 10px 8px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text2);
+        transition: all 0.3s;
+        border: none;
+        background: transparent;
+        white-space: nowrap;
+    }
+
+    .tab-sw.active {
+        background: linear-gradient(135deg, #7c3aed, #9d5cf6);
+        color: white;
+        box-shadow: 0 4px 15px rgba(124,58,237,0.4);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(124,58,237,0.15);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: var(--c);
+    }
+
+    .stat-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text2);
+        margin-bottom: 6px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .stat-unit { font-size: 10px; color: var(--text2); }
+
+    .chart-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 22px;
+        margin-bottom: 16px;
+    }
+
+    .chart-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chart-title i { color: var(--teal); }
+    .chart-sub { font-size: 11px; color: var(--text2); margin-bottom: 18px; }
+
+    .quartile-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .q-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--text2);
+        width: 35px;
+        text-transform: uppercase;
+    }
+
+    .q-track {
+        flex: 1;
+        height: 6px;
+        background: var(--dark3);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .q-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #7c3aed, #2dd4bf);
+        border-radius: 3px;
+        transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .q-value {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--teal);
+        width: 90px;
+        text-align: right;
+    }
+
+    .iqr-box {
+        background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(45,212,191,0.1));
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-top: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .iqr-label { font-size: 11px; color: var(--text2); font-weight: 600; }
+    .iqr-value { font-size: 20px; font-weight: 800; color: var(--violet3); }
+
+    .recap-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 16px;
+        background: var(--dark3);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+    }
+
+    .recap-row:hover { background: var(--dark4); border-color: rgba(124,58,237,0.3); }
+    .recap-row-label { font-size: 13px; color: var(--text2); }
+    .recap-row-value { font-size: 15px; font-weight: 800; }
+
+    .empty-analyse { text-align: center; padding: 80px 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title animate grad-text">Tableau de bord</div>
+<div class="page-sub animate">Statistiques descriptives complètes</div>
+
+{% if empty %}
+<div class="empty-analyse">
+    <div style="font-size:64px; opacity:0.2; margin-bottom:20px;">📊</div>
+    <div style="font-size:22px; font-weight:800; margin-bottom:10px;" class="grad-text">Aucune donnée</div>
+    <p style="color:var(--text2); font-size:13px; margin-bottom:24px;">Ajoutez des clients pour voir les analyses.</p>
+    <a href="/saisie" class="btn btn-primary"><i class="fas fa-plus"></i> Ajouter</a>
+</div>
+
+{% else %}
+
+<div class="tab-switch animate-2">
+    <button class="tab-sw active" onclick="switchTab('solde', this)">💰 Soldes</button>
+    <button class="tab-sw" onclick="switchTab('revenu', this)">📈 Revenus</button>
+    <button class="tab-sw" onclick="switchTab('transactions', this)">🔄 Transactions</button>
+    <button class="tab-sw" onclick="switchTab('profils', this)">👥 Profils</button>
+</div>
+
+<!-- TAB SOLDE -->
+<div id="tab-solde" class="tab-content active">
+    <div class="stats-grid">
+        <div class="stat-card" style="--c: linear-gradient(90deg,#7c3aed,#9d5cf6)">
+            <div class="stat-label">Moyenne</div>
+            <div class="stat-value" id="s-mean">—</div>
+            <div class="stat-unit">FCFA</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#2dd4bf,#0d9488)">
+            <div class="stat-label">Médiane</div>
+            <div class="stat-value" id="s-median">—</div>
+            <div class="stat-unit">FCFA</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#ec4899,#7c3aed)">
+            <div class="stat-label">Écart-type</div>
+            <div class="stat-value" id="s-std">—</div>
+            <div class="stat-unit">σ</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#f59e0b,#ec4899)">
+            <div class="stat-label">Variance</div>
+            <div class="stat-value" id="s-var">—</div>
+            <div class="stat-unit">σ²</div>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-chart-bar"></i> Distribution des soldes</div>
+        <div class="chart-sub">Histogramme de fréquence</div>
+        <canvas id="histSolde" height="220"></canvas>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-ruler-combined"></i> Quartiles & IQR</div>
+        <div class="chart-sub">Analyse de la dispersion</div>
+        <div class="quartile-row">
+            <span class="q-label">Min</span>
+            <div class="q-track"><div class="q-fill" style="width:5%"></div></div>
+            <span class="q-value" id="s-min">—</span>
+        </div>
+        <div class="quartile-row">
+            <span class="q-label">Q1</span>
+            <div class="q-track"><div class="q-fill" style="width:25%"></div></div>
+            <span class="q-value" id="s-q1">—</span>
+        </div>
+        <div class="quartile-row">
+            <span class="q-label">Q2</span>
+            <div class="q-track"><div class="q-fill" style="width:50%"></div></div>
+            <span class="q-value" id="s-q2">—</span>
+        </div>
+        <div class="quartile-row">
+            <span class="q-label">Q3</span>
+            <div class="q-track"><div class="q-fill" style="width:75%"></div></div>
+            <span class="q-value" id="s-q3">—</span>
+        </div>
+        <div class="quartile-row">
+            <span class="q-label">Max</span>
+            <div class="q-track"><div class="q-fill" style="width:100%"></div></div>
+            <span class="q-value" id="s-max">—</span>
+        </div>
+        <div class="iqr-box">
+            <div>
+                <div class="iqr-label">IQR (Q3 − Q1)</div>
+                <div class="iqr-value" id="s-iqr">—</div>
+            </div>
+            <i class="fas fa-ruler" style="font-size:24px; color:var(--violet3); opacity:0.5"></i>
+        </div>
+    </div>
+</div>
+
+<!-- TAB REVENU -->
+<div id="tab-revenu" class="tab-content">
+    <div class="stats-grid">
+        <div class="stat-card" style="--c: linear-gradient(90deg,#7c3aed,#9d5cf6)">
+            <div class="stat-label">Moyenne</div>
+            <div class="stat-value" id="r-mean">—</div>
+            <div class="stat-unit">FCFA/mois</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#2dd4bf,#0d9488)">
+            <div class="stat-label">Médiane</div>
+            <div class="stat-value" id="r-median">—</div>
+            <div class="stat-unit">FCFA/mois</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#ec4899,#7c3aed)">
+            <div class="stat-label">Écart-type</div>
+            <div class="stat-value" id="r-std">—</div>
+            <div class="stat-unit">σ</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#f59e0b,#ec4899)">
+            <div class="stat-label">Maximum</div>
+            <div class="stat-value" id="r-max">—</div>
+            <div class="stat-unit">FCFA</div>
+        </div>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-chart-area"></i> Distribution des revenus</div>
+        <div class="chart-sub">Histogramme de fréquence</div>
+        <canvas id="histRevenu" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-chart-pie"></i> Types de comptes</div>
+        <div class="chart-sub">Répartition du portefeuille</div>
+        <canvas id="chartTypes" height="220"></canvas>
+    </div>
+</div>
+
+<!-- TAB TRANSACTIONS -->
+<div id="tab-transactions" class="tab-content">
+    <div class="stats-grid">
+        <div class="stat-card" style="--c: linear-gradient(90deg,#7c3aed,#9d5cf6)">
+            <div class="stat-label">Moyenne</div>
+            <div class="stat-value" id="t-mean">—</div>
+            <div class="stat-unit">transactions</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#2dd4bf,#0d9488)">
+            <div class="stat-label">Médiane</div>
+            <div class="stat-value" id="t-median">—</div>
+            <div class="stat-unit">transactions</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#ec4899,#7c3aed)">
+            <div class="stat-label">Minimum</div>
+            <div class="stat-value" id="t-min">—</div>
+            <div class="stat-unit">transactions</div>
+        </div>
+        <div class="stat-card" style="--c: linear-gradient(90deg,#f59e0b,#ec4899)">
+            <div class="stat-label">Maximum</div>
+            <div class="stat-value" id="t-max">—</div>
+            <div class="stat-unit">transactions</div>
+        </div>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-percentage"></i> Taux de crédit</div>
+        <div class="chart-sub">Clients avec crédit actif</div>
+        <canvas id="chartCredit" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-chart-bar"></i> Montant moyen / transaction</div>
+        <div class="chart-sub">Statistiques descriptives</div>
+        <div class="quartile-row">
+            <span class="q-label">Moy</span>
+            <div class="q-track"><div class="q-fill" style="width:60%"></div></div>
+            <span class="q-value" id="m-mean">—</span>
+        </div>
+        <div class="quartile-row">
+            <span class="q-label">Méd</span>
+            <div class="q-track"><div class="q-fill" style="width:50%"></div></div>
+            <span class="q-value" id="m-median">—</span>
+        </div>
+        <div class="quartile-row">
+            <span class="q-label">Min</span>
+            <div class="q-track"><div class="q-fill" style="width:10%"></div></div>
+            <span class="q-value" id="m-min">—</span>
+        </div>
+        <div class="quartile-row">
+            <span class="q-label">Max</span>
+            <div class="q-track"><div class="q-fill" style="width:100%"></div></div>
+            <span class="q-value" id="m-max">—</span>
+        </div>
+    </div>
+</div>
+
+<!-- TAB PROFILS -->
+<div id="tab-profils" class="tab-content">
+    <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-users"></i> Tranches d'âge</div>
+        <div class="chart-sub">Distribution démographique</div>
+        <canvas id="chartAge" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title"><i class="fas fa-trophy"></i> Récapitulatif global</div>
+        <div class="chart-sub">Vue d'ensemble du portefeuille</div>
+        <div class="recap-row">
+            <span class="recap-row-label">Total clients</span>
+            <span class="recap-row-value" style="color:var(--teal)">{{ total }}</span>
+        </div>
+        <div class="recap-row">
+            <span class="recap-row-label">Avec crédit</span>
+            <span class="recap-row-value" style="color:#4ade80">{{ avec_credit }}</span>
+        </div>
+        <div class="recap-row">
+            <span class="recap-row-label">Sans crédit</span>
+            <span class="recap-row-value" style="color:#f87171">{{ total - avec_credit }}</span>
+        </div>
+        <div class="recap-row">
+            <span class="recap-row-label">Taux de crédit</span>
+            <span class="recap-row-value" style="color:var(--violet3)">
+                {% if total > 0 %}{{ "%.1f"|format(avec_credit / total * 100) }}%{% else %}0%{% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if not empty %}
+<script>
+const stats = {{ stats|safe }};
+const hists = {{ histogrammes|safe }};
+const types = {{ types_compte|safe }};
+const ages  = {{ tranches_age|safe }};
+
+const fmtK = v => {
+    if(v >= 1000000) return (v/1000000).toFixed(1)+'M';
+    if(v >= 1000) return (v/1000).toFixed(0)+'K';
+    return v;
+};
+
+// Remplir soldes
+document.getElementById('s-mean').textContent = fmtK(stats.solde.mean);
+document.getElementById('s-median').textContent = fmtK(stats.solde.median);
+document.getElementById('s-std').textContent = fmtK(stats.solde.std);
+document.getElementById('s-var').textContent = fmtK(stats.solde.variance);
+document.getElementById('s-min').textContent = fmtK(stats.solde.min)+' F';
+document.getElementById('s-q1').textContent = fmtK(stats.solde.q1)+' F';
+document.getElementById('s-q2').textContent = fmtK(stats.solde.median)+' F';
+document.getElementById('s-q3').textContent = fmtK(stats.solde.q3)+' F';
+document.getElementById('s-max').textContent = fmtK(stats.solde.max)+' F';
+document.getElementById('s-iqr').textContent = fmtK(stats.solde.iqr)+' FCFA';
+
+// Revenus
+document.getElementById('r-mean').textContent = fmtK(stats.revenu.mean);
+document.getElementById('r-median').textContent = fmtK(stats.revenu.median);
+document.getElementById('r-std').textContent = fmtK(stats.revenu.std);
+document.getElementById('r-max').textContent = fmtK(stats.revenu.max);
+
+// Transactions
+document.getElementById('t-mean').textContent = stats.transactions.mean;
+document.getElementById('t-median').textContent = stats.transactions.median;
+document.getElementById('t-min').textContent = stats.transactions.min;
+document.getElementById('t-max').textContent = stats.transactions.max;
+
+// Montants
+document.getElementById('m-mean').textContent = fmtK(stats.montant.mean)+' F';
+document.getElementById('m-median').textContent = fmtK(stats.montant.median)+' F';
+document.getElementById('m-min').textContent = fmtK(stats.montant.min)+' F';
+document.getElementById('m-max').textContent = fmtK(stats.montant.max)+' F';
+
+const COLORS = ['#7c3aed','#2dd4bf','#ec4899','#f59e0b','#60a5fa','#a78bfa'];
+const chartOpts = {
+    plugins: { legend: { labels: { color:'#9e9ec0', font:{size:11, family:'Outfit'} } } },
+    scales: {
+        x: { ticks:{color:'#9e9ec0', font:{size:10}}, grid:{color:'rgba(124,58,237,0.06)'} },
+        y: { ticks:{color:'#9e9ec0', font:{size:10}}, grid:{color:'rgba(124,58,237,0.06)'} }
+    }
+};
+
+new Chart(document.getElementById('histSolde'), {
+    type: 'bar',
+    data: {
+        labels: hists.solde.map(b=>b.label),
+        datasets: [{
+            label: 'Clients',
+            data: hists.solde.map(b=>b.count),
+            backgroundColor: 'rgba(124,58,237,0.25)',
+            borderColor: '#7c3aed',
+            borderWidth: 2,
+            borderRadius: 8,
+        }]
+    },
+    options: chartOpts
+});
+
+new Chart(document.getElementById('histRevenu'), {
+    type: 'bar',
+    data: {
+        labels: hists.revenu.map(b=>b.label),
+        datasets: [{
+            label: 'Clients',
+            data: hists.revenu.map(b=>b.count),
+            backgroundColor: 'rgba(45,212,191,0.2)',
+            borderColor: '#2dd4bf',
+            borderWidth: 2,
+            borderRadius: 8,
+        }]
+    },
+    options: chartOpts
+});
+
+new Chart(document.getElementById('chartTypes'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(types),
+        datasets: [{
+            data: Object.values(types),
+            backgroundColor: COLORS.map(c=>c+'33'),
+            borderColor: COLORS,
+            borderWidth: 2,
+        }]
+    },
+    options: { cutout:'65%', plugins:{ legend:{ labels:{ color:'#9e9ec0', font:{size:11} } } } }
+});
+
+new Chart(document.getElementById('chartCredit'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Avec crédit','Sans crédit'],
+        datasets: [{
+            data: [{{ avec_credit }}, {{ total }}-{{ avec_credit }}],
+            backgroundColor: ['rgba(45,212,191,0.2)','rgba(236,72,153,0.15)'],
+            borderColor: ['#2dd4bf','#ec4899'],
+            borderWidth: 2,
+        }]
+    },
+    options: { cutout:'65%', plugins:{ legend:{ labels:{ color:'#9e9ec0', font:{size:11} } } } }
+});
+
+new Chart(document.getElementById('chartAge'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys(ages),
+        datasets: [{
+            label: 'Clients',
+            data: Object.values(ages),
+            backgroundColor: COLORS.map(c=>c+'33'),
+            borderColor: COLORS,
+            borderWidth: 2,
+            borderRadius: 8,
+        }]
+    },
+    options: { ...chartOpts, plugins:{ legend:{ display:false } } }
+});
+
+function switchTab(name, el) {
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-sw').forEach(t=>t.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    el.classList.add('active');
+}
+</script>
+{% endif %}
+{% endblock %}

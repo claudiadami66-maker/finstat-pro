@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% block title %}FinStat Pro — Accueil{% endblock %}
+
+{% block extra_style %}
+<style>
+    .welcome-card {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 28px;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-card::before {
+        content: '';
+        position: absolute;
+        top: -50%; right: -20%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(124,58,237,0.2), transparent 70%);
+        border-radius: 50%;
+    }
+
+    .welcome-card::after {
+        content: '';
+        position: absolute;
+        bottom: -30%; left: -10%;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(45,212,191,0.15), transparent 70%);
+        border-radius: 50%;
+    }
+
+    .welcome-greeting {
+        font-size: 14px;
+        color: var(--text2);
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .welcome-title {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #c4b5fd, #2dd4bf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+    }
+
+    .welcome-sub {
+        font-size: 13px;
+        color: var(--text2);
+        line-height: 1.6;
+    }
+
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(45,212,191,0.1);
+        border: 1px solid rgba(45,212,191,0.25);
+        border-radius: 30px;
+        padding: 8px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--teal);
+        margin-top: 16px;
+        animation: pulse-glow 2s infinite;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .kpi-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(124,58,237,0.2);
+        border-color: rgba(124,58,237,0.4);
+    }
+
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: var(--grad);
+    }
+
+    .kpi-card.v1 { --grad: linear-gradient(90deg, #7c3aed, #9d5cf6); }
+    .kpi-card.v2 { --grad: linear-gradient(90deg, #2dd4bf, #0d9488); }
+    .kpi-card.v3 { --grad: linear-gradient(90deg, #ec4899, #7c3aed); }
+    .kpi-card.v4 { --grad: linear-gradient(90deg, #f59e0b, #ec4899); }
+
+    .kpi-icon {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px;
+        margin-bottom: 12px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .kpi-card.v1 .kpi-icon { background: rgba(124,58,237,0.15); color: var(--violet3); }
+    .kpi-card.v2 .kpi-icon { background: rgba(45,212,191,0.15); color: var(--teal); }
+    .kpi-card.v3 .kpi-icon { background: rgba(236,72,153,0.15); color: #f472b6; }
+    .kpi-card.v4 .kpi-icon { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+    .kpi-value {
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .kpi-label {
+        font-size: 11px;
+        color: var(--text2);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .action-btn {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 700;
+        font-size: 13px;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .action-btn.ab1::before { background: linear-gradient(135deg, rgba(124,58,237,0.15), transparent); }
+    .action-btn.ab2::before { background: linear-gradient(135deg, rgba(45,212,191,0.15), transparent); }
+    .action-btn.ab3::before { background: linear-gradient(135deg, rgba(236,72,153,0.15), transparent); }
+    .action-btn.ab4::before { background: linear-gradient(135deg, rgba(245,158,11,0.15), transparent); }
+
+    .action-btn:hover::before { opacity: 1; }
+
+    .action-btn:hover {
+        transform: translateY(-3px);
+        border-color: rgba(124,58,237,0.4);
+        box-shadow: 0 10px 30px rgba(124,58,237,0.15);
+    }
+
+    .action-icon {
+        width: 50px; height: 50px;
+        border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px;
+    }
+
+    .ab1 .action-icon { background: rgba(124,58,237,0.15); color: var(--violet3); }
+    .ab2 .action-icon { background: rgba(45,212,191,0.15); color: var(--teal); }
+    .ab3 .action-icon { background: rgba(236,72,153,0.15); color: #f472b6; }
+    .ab4 .action-icon { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+    .features-title {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .feature-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--dark3);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        transition: all 0.3s;
+    }
+
+    .feature-item:hover {
+        background: var(--dark4);
+        border-color: rgba(124,58,237,0.3);
+    }
+
+    .feature-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .feature-text { font-size: 13px; color: var(--text2); font-weight: 500; }
+    .feature-text strong { color: var(--text); display: block; font-size: 14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Welcome -->
+<div class="welcome-card animate">
+    <div class="welcome-greeting">Bienvenue sur</div>
+    <div class="welcome-title">FinStat Pro 🏛️</div>
+    <div class="welcome-sub">Plateforme d'intelligence financière — collecte et analyse vos données bancaires avec précision.</div>
+    <div class="total-badge">
+        <i class="fas fa-users"></i>
+        {{ total }} client{{ 's' if total > 1 else '' }} enregistré{{ 's' if total > 1 else '' }}
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid animate-2">
+    <div class="kpi-card v1">
+        <div class="kpi-icon"><i class="fas fa-users"></i></div>
+        <div class="kpi-value">{{ total }}</div>
+        <div class="kpi-label">Clients</div>
+    </div>
+    <div class="kpi-card v2">
+        <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="kpi-value">8</div>
+        <div class="kpi-label">Variables</div>
+    </div>
+    <div class="kpi-card v3">
+        <div class="kpi-icon"><i class="fas fa-chart-pie"></i></div>
+        <div class="kpi-value">6+</div>
+        <div class="kpi-label">Graphiques</div>
+    </div>
+    <div class="kpi-card v4">
+        <div class="kpi-icon"><i class="fas fa-bolt"></i></div>
+        <div class="kpi-value">100%</div>
+        <div class="kpi-label">Temps réel</div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="features-title animate-3">
+    <i class="fas fa-th" style="color: var(--teal)"></i> Actions rapides
+</div>
+<div class="actions-grid animate-3">
+    <a href="/saisie" class="action-btn ab1">
+        <div class="action-icon"><i class="fas fa-user-plus"></i></div>
+        Ajouter client
+    </a>
+    <a href="/clients" class="action-btn ab2">
+        <div class="action-icon"><i class="fas fa-users"></i></div>
+        Voir clients
+    </a>
+    <a href="/analyse" class="action-btn ab3">
+        <div class="action-icon"><i class="fas fa-chart-bar"></i></div>
+        Analyser
+    </a>
+    <a href="/saisie" class="action-btn ab4">
+        <div class="action-icon"><i class="fas fa-file-csv"></i></div>
+        Import CSV
+    </a>
+</div>
+
+<!-- Features -->
+<div class="features-title animate-4">
+    <i class="fas fa-star" style="color: var(--violet3)"></i> Fonctionnalités
+</div>
+<div class="feature-list animate-4">
+    <div class="feature-item">
+        <div class="feature-dot" style="background: var(--violet)"></div>
+        <div class="feature-text">
+            <strong>Collecte intelligente</strong>
+            Saisie manuelle ou import CSV massif
+        </div>
+    </div>
+    <div class="feature-item">
+        <div class="feature-dot" style="background: var(--teal)"></div>
+        <div class="feature-text">
+            <strong>Statistiques complètes</strong>
+            Moyenne, médiane, écart-type, quartiles, IQR
+        </div>
+    </div>
+    <div class="feature-item">
+        <div class="feature-dot" style="background: var(--pink)"></div>
+        <div class="feature-text">
+            <strong>Visualisations avancées</strong>
+            Histogrammes, camemberts, distributions
+        </div>
+    </div>
+    <div class="feature-item">
+        <div class="feature-dot" style="background: #fbbf24"></div>
+        <div class="feature-text">
+            <strong>Analyse démographique</strong>
+            Tranches d'âge, types de comptes, taux crédit
+        </div>
+    </div>
+</div>
+{% endblock %}

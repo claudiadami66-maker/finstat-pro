@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FinStat Pro{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --violet: #7c3aed;
+            --violet2: #9d5cf6;
+            --violet3: #c4b5fd;
+            --teal: #2dd4bf;
+            --teal2: #5eead4;
+            --pink: #ec4899;
+            --dark: #080810;
+            --dark2: #0f0f1a;
+            --dark3: #161628;
+            --dark4: #1e1e35;
+            --card: #13131f;
+            --border: rgba(124,58,237,0.2);
+            --text: #f0eeff;
+            --text2: #9e9ec0;
+            --glow: rgba(124,58,237,0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--dark);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 90px;
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(124,58,237,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(45,212,191,0.08) 0%, transparent 50%);
+        }
+
+        /* ── Header ── */
+        .header {
+            background: rgba(8,8,16,0.92);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #7c3aed, #2dd4bf);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 0 20px rgba(124,58,237,0.5);
+        }
+
+        .header-name {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #c4b5fd, #2dd4bf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.5px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notif-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--dark4);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--violet3);
+            font-size: 16px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .notif-btn:hover {
+            background: var(--violet);
+            box-shadow: 0 0 20px var(--glow);
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 8px; height: 8px;
+            background: var(--pink);
+            border-radius: 50%;
+            border: 2px solid var(--dark);
+        }
+
+        /* ── Bottom Nav ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(13,13,26,0.97);
+            backdrop-filter: blur(24px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 20px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            color: var(--text2);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 0 20px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--teal);
+        }
+
+        .nav-item.active i {
+            color: var(--teal);
+            filter: drop-shadow(0 0 8px rgba(45,212,191,0.8));
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -13px;
+            width: 40px; height: 3px;
+            background: linear-gradient(90deg, var(--violet), var(--teal));
+            border-radius: 0 0 4px 4px;
+        }
+
+        .nav-item:hover { color: var(--violet3); }
+
+        /* ── Page ── */
+        .page { padding: 24px; max-width: 900px; margin: 0 auto; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--violet), var(--teal), transparent);
+        }
+
+        .card:hover {
+            border-color: rgba(124,58,237,0.4);
+            box-shadow: 0 8px 32px rgba(124,58,237,0.15);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i { color: var(--teal); }
+
+        /* ── Boutons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0);
+            transition: background 0.3s;
+        }
+
+        .btn:active::after {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #9d5cf6);
+            color: white;
+            box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124,58,237,0.6);
+        }
+
+        .btn-teal {
+            background: linear-gradient(135deg, #0d9488, #2dd4bf);
+            color: #080810;
+            font-weight: 800;
+            box-shadow: 0 4px 20px rgba(45,212,191,0.3);
+        }
+
+        .btn-teal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(45,212,191,0.5);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--violet3);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: rgba(124,58,237,0.1);
+            border-color: var(--violet);
+        }
+
+        .btn-danger {
+            background: rgba(239,68,68,0.1);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+
+        /* ── Ripple effect ── */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-anim 0.6s linear;
+            background: rgba(255,255,255,0.25);
+            pointer-events: none;
+        }
+
+        @keyframes ripple-anim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* ── Forms ── */
+        .form-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text2);
+            margin-bottom: 8px;
+        }
+
+        input, select {
+            width: 100%;
+            background: var(--dark3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--violet);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.15), 0 0 20px rgba(124,58,237,0.1);
+            background: var(--dark4);
+        }
+
+        select option { background: var(--dark3); }
+
+        /* ── Badge ── */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-violet {
+            background: rgba(124,58,237,0.15);
+            color: var(--violet3);
+            border: 1px solid rgba(124,58,237,0.3);
+        }
+
+        .badge-teal {
+            background: rgba(45,212,191,0.1);
+            color: var(--teal);
+            border: 1px solid rgba(45,212,191,0.2);
+        }
+
+        .badge-pink {
+            background: rgba(236,72,153,0.1);
+            color: #f472b6;
+            border: 1px solid rgba(236,72,153,0.2);
+        }
+
+        .badge-red {
+            background: rgba(248,113,113,0.1);
+            color: #f87171;
+            border: 1px solid rgba(248,113,113,0.2);
+        }
+
+        /* ── Table ── */
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            text-align: left;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text2);
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(124,58,237,0.06);
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        tr:hover td { background: rgba(124,58,237,0.04); }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.3); }
+            50% { box-shadow: 0 0 40px rgba(124,58,237,0.7); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .animate { animation: fadeUp 0.5s ease forwards; }
+        .animate-2 { animation: fadeUp 0.5s 0.1s ease both; }
+        .animate-3 { animation: fadeUp 0.5s 0.2s ease both; }
+        .animate-4 { animation: fadeUp 0.5s 0.3s ease both; }
+
+        /* ── Gradient text ── */
+        .grad-text {
+            background: linear-gradient(135deg, #c4b5fd, #2dd4bf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .grad-text-pink {
+            background: linear-gradient(135deg, #f472b6, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ── Glow line ── */
+        .glow-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--violet), var(--teal), transparent);
+            margin: 20px 0;
+            opacity: 0.5;
+        }
+    </style>
+    {% block extra_style %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-brand">
+            <div class="header-logo">🏛️</div>
+            <div class="header-name">FinStat Pro</div>
+        </div>
+        <div class="header-right">
+            <div class="notif-btn">
+                <i class="fas fa-bell"></i>
+                <div class="notif-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu -->
+    <div class="page animate">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+            <i class="fas fa-home"></i>
+            Accueil
+        </a>
+        <a href="/saisie" class="nav-item {% if request.path == '/saisie' %}active{% endif %}">
+            <i class="fas fa-plus-circle"></i>
+            Saisie
+        </a>
+        <a href="/clients" class="nav-item {% if request.path == '/clients' %}active{% endif %}">
+            <i class="fas fa-users"></i>
+            Clients
+        </a>
+        <a href="/analyse" class="nav-item {% if request.path == '/analyse' %}active{% endif %}">
+            <i class="fas fa-chart-bar"></i>
+            Analyse
+        </a>
+    </nav>
+
+    <!-- Ripple JS global -->
+    <script>
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+                ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

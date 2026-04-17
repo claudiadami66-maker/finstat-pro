@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}FinStat Pro — Clients{% endblock %}
+
+{% block extra_style %}
+<style>
+    .page-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+    .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+
+    .stats-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .stat-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 30px;
+        padding: 8px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text2);
+    }
+
+    .stat-pill strong { color: var(--text); }
+    .stat-pill i { color: var(--teal); }
+
+    .search-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+    }
+
+    .search-wrap i { color: var(--text2); }
+    .search-wrap input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text);
+        font-size: 14px;
+        width: 100%;
+        padding: 0;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+    }
+
+    .compte-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .c-epargne { background: rgba(96,165,250,0.1); color: #60a5fa; border: 1px solid rgba(96,165,250,0.2); }
+    .c-courant { background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); }
+    .c-pro { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+    .c-premium { background: rgba(45,212,191,0.1); color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+
+    .empty-icon { font-size: 64px; opacity: 0.2; margin-bottom: 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title animate grad-text">Portefeuille clients</div>
+<div class="page-sub animate">Gestion de tous les profils enregistrés</div>
+
+{% if clients %}
+<div class="stats-row animate-2">
+    <div class="stat-pill">
+        <i class="fas fa-users"></i>
+        Total : <strong>{{ clients|length }}</strong>
+    </div>
+    <div class="stat-pill">
+        <i class="fas fa-credit-card"></i>
+        Avec crédit : <strong>{{ clients|selectattr('a_credit')|list|length }}</strong>
+    </div>
+    <div class="stat-pill">
+        <i class="fas fa-calendar"></i>
+        Dernier : <strong>{{ clients[0].date_ajout.strftime('%d/%m/%Y') }}</strong>
+    </div>
+</div>
+
+<div class="search-wrap animate-3">
+    <i class="fas fa-search"></i>
+    <input type="text" id="searchInput" placeholder="Rechercher un client...">
+</div>
+
+<div style="display:flex; gap:12px; margin-bottom:20px;" class="animate-3">
+    <a href="/saisie" class="btn btn-primary" style="flex:1;">
+        <i class="fas fa-plus"></i> Nouveau
+    </a>
+    <a href="/analyse" class="btn btn-teal" style="flex:1;">
+        <i class="fas fa-chart-bar"></i> Analyser
+    </a>
+</div>
+
+<div class="table-wrap animate-4">
+    <table id="clientsTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th>Âge</th>
+                <th>Compte</th>
+                <th>Solde</th>
+                <th>Revenu</th>
+                <th>Tx</th>
+                <th>Crédit</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in clients %}
+            <tr>
+                <td style="color:var(--text2); font-size:12px;">{{ loop.index }}</td>
+                <td>
+                    <div style="font-weight:700;">{{ c.nom }}</div>
+                    <div style="font-size:11px; color:var(--text2);">{{ c.prenom }}</div>
+                </td>
+                <td>{{ c.age }}a</td>
+                <td>
+                    <span class="compte-badge
+                        {% if c.type_compte == 'Épargne' %}c-epargne
+                        {% elif c.type_compte == 'Courant' %}c-courant
+                        {% elif c.type_compte == 'Professionnel' %}c-pro
+                        {% else %}c-premium{% endif %}">
+                        {{ c.type_compte }}
+                    </span>
+                </td>
+                <td style="font-weight:700; color:var(--teal);">{{ "{:,.0f}".format(c.solde) }}</td>
+                <td style="color:var(--text2);">{{ "{:,.0f}".format(c.revenu_mensuel) }}</td>
+                <td style="text-align:center;">{{ c.nb_transactions }}</td>
+                <td>
+                    {% if c.a_credit %}
+                        <span class="badge badge-teal"><i class="fas fa-check"></i></span>
+                    {% else %}
+                        <span class="badge badge-red"><i class="fas fa-times"></i></span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/delete/{{ c.id }}"
+                       onclick="return confirm('Supprimer ?')"
+                       class="btn btn-danger"
+                       style="padding:6px 12px; font-size:11px;">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">🏦</div>
+    <div style="font-size:22px; font-weight:800; margin-bottom:10px;" class="grad-text">Aucun client</div>
+    <p style="color:var(--text2); font-size:13px; margin-bottom:24px;">Ajoutez votre premier client pour commencer.</p>
+    <a href="/saisie" class="btn btn-primary"><i class="fas fa-plus"></i> Ajouter</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('searchInput')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#clientsTable tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}
